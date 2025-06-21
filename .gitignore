@@ -1,0 +1,14 @@
+# PlaftormIO
+.pio
+.DS_Store
+
+# Kicad
+*-backups
+*/Gerber/*
+*/*.lck
+*/fp-info-cache
+*/fp-lib-table
+*/sym-lib-table
+*/#auto_saved_files#
+*/jlcpcb/gerber
+*.kicad_sch_old
