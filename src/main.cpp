@@ -1,47 +1,47 @@
 #include <Arduino.h>
 #include <M5GFX.h>
+#include <M5ModulePPS.h>
+#include <M5Unified.hpp>
 
 M5GFX display;
-
-static constexpr char text0[] = "hello world";
-static constexpr char text1[] = "this";
-static constexpr char text2[] = "is";
-static constexpr char text3[] = "text";
-static constexpr char text4[] = "log";
-static constexpr char text5[] = "vertical";
-static constexpr char text6[] = "scroll";
-static constexpr char text7[] = "sample";
-static constexpr const char *text[] = {text0, text1, text2, text3, text4, text5, text6, text7};
-
 M5Canvas canvas(&display);
+
+std::array<uint8_t, 2> module_adr{MODULE_POWER_ADDR,MODULE_POWER_ADDR + 1};
+std::array<M5ModulePPS, module_adr.size()> pps;
+std::array<bool, module_adr.size()> module_found{};
+
+void init_display()
+{
+	display.begin();
+	display.setEpdMode(epd_fastest);
+	canvas.setColorDepth(8);
+	canvas.setFont(&efontCN_12);
+	canvas.createSprite(display.width(), display.height());
+	canvas.setTextSize(2);
+	canvas.setTextScroll(true);
+}
 
 void setup()
 {
-	display.begin();
+	M5.begin();
+	init_display();
 
-	if (display.isEPD())
-	{
-		display.setEpdMode(epd_fastest);
-		display.invertDisplay(true);
-		display.clear(TFT_BLACK);
-	}
-	if (display.width() < display.height())
-	{
-		display.setRotation(display.getRotation() ^ 1);
-	}
+	for (int i = 0; i < module_adr.size(); i++)
+		module_found[i] = pps[i].begin(&Wire, M5.In_I2C.getSDA(), M5.In_I2C.getSCL(), module_adr[i], 400000U);
 
-	canvas.setColorDepth(1); // mono color
-	canvas.createSprite(display.width(), display.height());
-	canvas.setTextSize(static_cast<float>(canvas.width()) / 160);
-	canvas.setTextScroll(true);
+	pps[0].setOutputVoltage(5.0);
+	pps[0].setOutputCurrent(0.5);
+	pps[0].setPowerEnable(true);
 }
 
 void loop()
 {
-	static int count = 0;
+	const float voltage_readback = pps[0].getReadbackVoltage();
+	const float current_readback = pps[0].getReadbackCurrent();
+	//float vin = pps[0].getVIN();
+	//int mode = pps[0].getMode();
 
-	canvas.printf("%04d:%s\r\n", count, text[count & 7]);
+	canvas.printf("%.3fV %fmA\r\n", voltage_readback, current_readback * 1000);
 	canvas.pushSprite(0, 0);
-	++count;
 	delay(500);
 }
