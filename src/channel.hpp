@@ -23,13 +23,18 @@ class Channel
 	float current_is{0.0};
 	bool in_cc_mode{false};
 
-	void draw() const;
-
 public:
+	constexpr float max_voltage {12.0};
+	constexpr float max_current {5.0};
+
 	Channel(const uint8_t module_adr, const uint8_t display_offset): module_adr(module_adr),
 																	 display_offset(display_offset) {}
 
+	//refresh measurement data
 	void loop();
+
+	//refresh gui output
+	void draw() const;
 
 	void set_voltage(float voltage);
 
@@ -38,6 +43,8 @@ public:
 	void set_enabled(bool in);
 
 	void set_address(uint8_t addr);
+
+	void reset();
 };
 
 extern std::array<Channel, 2> channels;

@@ -13,21 +13,22 @@ void Channel::loop()
 {
 	if (!connected)
 	{
-		connected = module.begin(&Wire, M5.In_I2C.getSDA(), M5.In_I2C.getSCL(), module_adr, 400000U);
+		connected = module.begin(&Wire, M5.In_I2C.getSDA(), M5.In_I2C.getSCL(), module_adr, 100000U);
 		if (connected)
 		{
 			module.setPowerEnable(enabled);
 			module.setOutputVoltage(voltage_target);
 			module.setOutputCurrent(current_target);
 		}
-	} else
-	{
-		voltage_is = module.getReadbackVoltage();
-		current_is = module.getReadbackCurrent();
-		in_cc_mode = !module.getMode();
+		return;
 	}
 
-	draw();
+	if (!enabled)
+		return;
+
+	voltage_is = module.getReadbackVoltage();
+	current_is = module.getReadbackCurrent();
+	in_cc_mode = !module.getMode();
 }
 
 void Channel::set_voltage(const float voltage)
@@ -49,6 +50,12 @@ void Channel::set_enabled(const bool in)
 	enabled = in;
 	if (connected)
 		module.setPowerEnable(in);
+	if (!enabled)
+	{
+		voltage_is = 0;
+		current_is = 0;
+		in_cc_mode = false;
+	}
 }
 
 void Channel::set_address(const uint8_t addr)
@@ -98,4 +105,11 @@ void Channel::draw() const
 	//current measurement/setting
 	canvas.setCursor(170, display_offset + 60);
 	canvas.printf("%4.1f mA ", (enabled ? current_is : current_target) * 1000);
+}
+
+void Channel::reset()
+{
+	set_enabled(false);
+	set_voltage(0);
+	set_current(0);
 }
