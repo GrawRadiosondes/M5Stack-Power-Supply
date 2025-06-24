@@ -49,7 +49,11 @@ void Channel::set_enabled(const bool in)
 {
 	enabled = in;
 	if (connected)
+	{
 		module.setPowerEnable(in);
+		module.setOutputVoltage(voltage_target);
+		module.setOutputCurrent(current_target);
+	}
 	if (!enabled)
 	{
 		voltage_is = 0;
@@ -65,7 +69,7 @@ void Channel::set_address(const uint8_t addr)
 	connected = false;
 }
 
-void Channel::draw() const
+void Channel::draw(const char* name) const
 {
 	//try to connect module if not already connected
 	if (!connected)
@@ -76,12 +80,13 @@ void Channel::draw() const
 		canvas.print("Module not found");
 		return;
 	}
+	canvas.fillRect(30, display_offset + 40, 280, 30, TFT_BLACK);
 
 	//channel Label
 	canvas.setTextColor(TFT_YELLOW, TFT_BLACK);
 	canvas.setFont(&efontCN_12);
 	canvas.setCursor(16, display_offset + 8);
-	canvas.print("CH1");
+	canvas.print(name);
 
 	//cv/cc mode
 	canvas.setTextColor(in_cc_mode ? TFT_RED : TFT_YELLOW, TFT_BLACK);

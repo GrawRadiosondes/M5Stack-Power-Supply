@@ -38,14 +38,10 @@ void setup()
 	snprintf(serial_num_str, sizeof serial_num_str, "%012llX", chip_id);
 
 	// start scpi interface
-	scpi::begin(serial_num_str, "1.0.0", "PSU 2");
+	scpi::begin(serial_num_str, "1.0.0", "M5-PSU 2");
 
 	M5.begin();
 	init_display();
-
-	channels[0].set_voltage(8);
-	channels[0].set_current(0.5);
-	channels[0].set_enabled(true);
 }
 
 void loop()
@@ -62,8 +58,8 @@ void loop()
 	if (millis() - last_display_refresh > 250)
 	{
 		last_display_refresh = millis();
-		channels[0].draw();
-		channels[1].draw();
+		channels[0].draw("CH1");
+		channels[1].draw("CH2");
 		canvas.pushSprite(0, 0);
 	}
 }
