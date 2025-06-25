@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 #include <channel.hpp>
+#include <main.hpp>
 #include <scpi/scpi.h>
 
 #include "scpi_client.hpp"
@@ -24,6 +25,22 @@ scpi_result_t get_selftest(scpi_t *context);
 
 //No Operation
 scpi_result_t scpi_nop(scpi_t *context);
+
+// System Commands
+scpi_result_t set_beeper_state(scpi_t *context);
+
+scpi_result_t get_beeper_state(scpi_t *context);
+
+scpi_result_t beep_immediate(scpi_t *context);
+
+// Display Commands
+scpi_result_t set_display_text(scpi_t *context);
+
+scpi_result_t display_text_clear(scpi_t *context);
+
+scpi_result_t set_brightness(scpi_t *context);
+
+scpi_result_t set_display_enabled(scpi_t *context);
 
 //configuration commands
 scpi_result_t set_instrument_select(scpi_t *context);
@@ -85,11 +102,22 @@ const scpi_command_t scpi_commands[] = {
 	{.pattern = "SYSTem:ERRor[:NEXT]?", .callback = SCPI_SystemErrorNextQ},
 	{.pattern = "SYSTem:ERRor:COUNt?", .callback = SCPI_SystemErrorCountQ},
 	{.pattern = "SYSTem:VERSion?", .callback = SCPI_SystemVersionQ},
+
+	{.pattern = "STATus:PRESet", .callback = SCPI_StatusPreset},
+
+	// System Commands
+	{.pattern = "SYSTem:BEEPer:STATe", .callback = set_beeper_state},
+	{.pattern = "SYSTem:BEEPer:STATe?", .callback = get_beeper_state},
+	{.pattern = "SYSTem:BEEPer[:IMMediate]", .callback = beep_immediate},
 	{.pattern = "SYSTem:LOCal", .callback = scpi_nop},
 	{.pattern = "SYSTem:REMote", .callback = scpi_nop},
 	{.pattern = "SYSTem:RWLock", .callback = scpi_nop},
 
-	{.pattern = "STATus:PRESet", .callback = SCPI_StatusPreset},
+	// Display Commands
+	{.pattern = "DISPlay[:WINDow]:TEXT:CLEar", .callback = display_text_clear},
+	{.pattern = "DISPlay[:WINDow]:TEXT[:DATA]", .callback = set_display_text},
+	{.pattern = "DISPlay:BRIGhtness", .callback = set_brightness},
+	{.pattern = "DISPlay:ENABle", .callback = set_display_enabled},
 
 	//configuration commands
 	{.pattern = "INSTrument[:SELect]", .callback = set_instrument_select},
@@ -133,6 +161,9 @@ scpi_result_t reset_callback(scpi_t *)
 	selected_channel = 0;
 	voltage_step = voltage_step_default;
 	current_step = current_step_default;
+	beeper_active = true;
+	display_text[0] = 0;
+	display.setBrightness(0xFF);
 	channels[0].reset();
 	channels[1].reset();
 	return SCPI_RES_OK;
@@ -532,5 +563,67 @@ scpi_result_t change_i2c_adr(scpi_t *context)
 		return SCPI_RES_ERR;
 
 	channels[selected_channel].set_address(addr);
+	return SCPI_RES_OK;
+}
+
+scpi_result_t set_beeper_state(scpi_t *context)
+{
+	bool res;
+	if (!SCPI_ParamBool(context, &res, true))
+		return SCPI_RES_ERR;
+	beeper_active = res;
+	return SCPI_RES_OK;
+}
+
+scpi_result_t get_beeper_state(scpi_t *context)
+{
+	SCPI_ResultBool(context, beeper_active);
+	return SCPI_RES_OK;
+}
+
+scpi_result_t beep_immediate(scpi_t *)
+{
+	beep();
+	return SCPI_RES_OK;
+}
+
+scpi_result_t set_display_text(scpi_t *context)
+{
+	const char *text;
+	size_t len;
+	if (!SCPI_ParamCharacters(context, &text, &len, true))
+		return SCPI_RES_ERR;
+	strncpy(display_text, text, len);
+	return SCPI_RES_OK;
+}
+
+scpi_result_t display_text_clear(scpi_t *)
+{
+	display_text[0] = 0;
+	return SCPI_RES_OK;
+}
+
+scpi_result_t set_brightness(scpi_t *context)
+{
+	double res;
+	if (!SCPI_ParamDouble(context, &res, true))
+		return SCPI_RES_ERR;
+
+	if (res < 0 || res > 1)
+	{
+		SCPI_ErrorPush(context, SCPI_ERROR_DATA_OUT_OF_RANGE);
+		return SCPI_RES_ERR;
+	}
+
+	display.setBrightness(static_cast<uint8_t>(0xFF * res));
+	return SCPI_RES_OK;
+}
+
+scpi_result_t set_display_enabled(scpi_t *context)
+{
+	bool res;
+	if (!SCPI_ParamBool(context, &res, true))
+		return SCPI_RES_ERR;
+	display.setBrightness(res ? 0xFF : 0);
 	return SCPI_RES_OK;
 }

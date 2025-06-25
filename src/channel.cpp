@@ -74,42 +74,39 @@ void Channel::draw(const char* name) const
 	//try to connect module if not already connected
 	if (!connected)
 	{
-		canvas.setTextColor(TFT_RED, TFT_BLACK);
+		canvas.setTextColor(TFT_RED);
 		canvas.setFont(&efontCN_16);
 		canvas.setCursor(30, display_offset + 40);
 		canvas.print("Module not found");
 		return;
 	}
-	canvas.fillRect(30, display_offset + 40, 280, 30, TFT_BLACK);
 
 	//channel Label
-	canvas.setTextColor(TFT_YELLOW, TFT_BLACK);
+	canvas.setTextColor(TFT_YELLOW);
 	canvas.setFont(&efontCN_12);
 	canvas.setCursor(16, display_offset + 8);
 	canvas.print(name);
 
 	//cv/cc mode
-	canvas.setTextColor(in_cc_mode ? TFT_RED : TFT_YELLOW, TFT_BLACK);
+	canvas.setTextColor(in_cc_mode ? TFT_RED : TFT_YELLOW);
 	canvas.setCursor(80, display_offset + 8);
 	if (enabled)
 		canvas.print(in_cc_mode ? "CC" : "CV");
-	else
-		canvas.print("  ");
 
 	//power
-	canvas.setTextColor(enabled ? TFT_GREEN : TFT_YELLOW, TFT_BLACK);
+	canvas.setTextColor(enabled ? TFT_GREEN : TFT_YELLOW);
 	canvas.setCursor(170, display_offset + 8);
 	const float power = enabled ? voltage_is * current_is : voltage_target * current_target;
-	canvas.printf("%3.1f W ", power);
+	canvas.printf("%3.1f W", power);
 
 	//voltage measurement/setting
 	canvas.setFont(&efontCN_16);
 	canvas.setCursor(20, display_offset + 60);
-	canvas.printf("%4.2f V ", enabled ? voltage_is : voltage_target);
+	canvas.printf("%4.2f V", enabled ? voltage_is : voltage_target);
 
 	//current measurement/setting
 	canvas.setCursor(170, display_offset + 60);
-	canvas.printf("%4.1f mA  ", (enabled ? current_is : current_target) * 1000);
+	canvas.printf("%4.1f mA", (enabled ? current_is : current_target) * 1000);
 }
 
 void Channel::reset()
