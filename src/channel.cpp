@@ -109,7 +109,7 @@ void Channel::draw(const char* name) const
 
 	//current measurement/setting
 	canvas.setCursor(170, display_offset + 60);
-	canvas.printf("%4.1f mA ", (enabled ? current_is : current_target) * 1000);
+	canvas.printf("%4.1f mA  ", (enabled ? current_is : current_target) * 1000);
 }
 
 void Channel::reset()
