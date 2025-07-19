@@ -20,7 +20,7 @@ void draw_display_text();
 
 void setup()
 {
-	Serial.begin(921600);
+	Serial.begin(115200);
 	Serial.flush();
 	Serial.setDebugOutput(false);
 	// uncomment this line for debug output on boot

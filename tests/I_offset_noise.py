@@ -15,7 +15,7 @@ load = lxi.Device(info.get_ip('RIGOL TECHNOLOGIES,DL3031A'), 0, "inst0", lxi.Pro
 # connect to M5 Stack Supply
 class M5StackSupply:
     def __init__(self, port):
-        self.port = serial.Serial(port, 921600, timeout=0.1)
+        self.port = serial.Serial(port, 115200, timeout=0.1)
         idn_resp = self.query('*IDN?')
         if not idn_resp.startswith('Graw Radiosondes,M5-PSU 2'):
             raise RuntimeError(f'Wrong instrument at {port}, *IDN? returned {idn_resp}')
